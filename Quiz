@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Habitat Detectives Quiz</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+  /* Layout: one centred question card at a time, big picture on top, big tap targets below. Built for Grade 3 on a shared tablet. */
+  :root {
+    --bg: #eef5f2;
+    --fg: #16302a;
+    --muted: #4d6a62;
+    --card: #ffffff;
+    --line: #c9dcd5;
+    --accent: #1b7a5a;
+    --accent-fg: #ffffff;
+    --good-bg: #dff3e6;
+    --good-fg: #14562e;
+    --hint-bg: #fff1d6;
+    --hint-fg: #6b4300;
+    --sky-top: #bfe3f5;
+    --sky-bot: #eaf7fc;
+    --sand: #f0d9a0;
+    --ice: #dff1fb;
+    --grass: #bfe6a3;
+    --dry: #cfae86;
+    --font: ui-rounded, "Nunito", "Trebuchet MS", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1d19; --fg: #e5f1ec; --muted: #9fbab1; --card: #172a25; --line: #2b4540;
+      --accent: #5fd0a5; --accent-fg: #07241a; --good-bg: #17402a; --good-fg: #b9efcc;
+      --hint-bg: #43320f; --hint-fg: #ffdc9a;
+      --sky-top: #28506a; --sky-bot: #36657f; --sand: #8a7440; --ice: #3a6178; --grass: #3d6b36; --dry: #7a6244;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1d19; --fg: #e5f1ec; --muted: #9fbab1; --card: #172a25; --line: #2b4540;
+    --accent: #5fd0a5; --accent-fg: #07241a; --good-bg: #17402a; --good-fg: #b9efcc;
+    --hint-bg: #43320f; --hint-fg: #ffdc9a;
+    --sky-top: #28506a; --sky-bot: #36657f; --sand: #8a7440; --ice: #3a6178; --grass: #3d6b36; --dry: #7a6244;
+    color-scheme: dark;
+  }
+  body {
+    background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 20px; line-height: 1.45;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 20px 40px;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+  header { display: flex; flex-direction: column; gap: 8px; }
+  h1 { font-size: 1.5rem; margin: 0; text-wrap: balance; }
+  .sub { color: var(--muted); font-size: 0.9rem; margin: 0; }
+  .dots { display: flex; gap: 8px; }
+  .dot { flex: 1; height: 10px; border-radius: 99px; background: var(--line); }
+  .dot.done { background: var(--accent); }
+  .dot.now { background: var(--fg); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+  .tag { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+  .scene { height: 170px; border-radius: 14px; display: flex; align-items: flex-end; justify-content: center; position: relative; overflow: hidden; border: 1px solid var(--line); }
+  .scene .big { font-size: 5.5rem; line-height: 1; margin-bottom: 14px; }
+  .scene .note { position: absolute; top: 8px; left: 10px; font-size: 0.8rem; font-weight: 700; color: #16302a; background: rgba(255,255,255,.75); padding: 2px 8px; border-radius: 99px; }
+  .s-desert { background: linear-gradient(var(--sky-top) 0 55%, var(--sand) 55%); }
+  .s-pond { background: linear-gradient(var(--sky-top) 0 45%, var(--grass) 45% 60%, #5bb4e0 60%); }
+  .s-snow { background: linear-gradient(var(--sky-top) 0 40%, var(--ice) 40%); }
+  .s-forest { background: linear-gradient(#1f3d4f 0 50%, var(--grass) 50%); }
+  .s-dry { background: linear-gradient(var(--sky-top) 0 45%, var(--dry) 45%); }
+  .s-dry .big::after { content: ""; }
+  h2 { font-size: 1.2rem; margin: 0; text-wrap: balance; }
+  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .opt {
+    font: inherit; color: var(--fg); background: var(--bg); border: 2px solid var(--line); border-radius: 14px;
+    min-height: 88px; padding: 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center;
+  }
+  .opt .ic { font-size: 2rem; line-height: 1; }
+  .opt .lb { font-weight: 700; font-size: 0.95rem; }
+  .opt:hover { border-color: var(--accent); }
+  .opt:focus-visible, .btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .opt[disabled] { opacity: .45; cursor: not-allowed; }
+  .opt.right { border-color: var(--good-fg); background: var(--good-bg); opacity: 1; }
+  .fb { border-radius: 14px; padding: 12px 14px; font-size: 1rem; }
+  .fb strong { display: block; font-size: 1.1rem; margin-bottom: 2px; }
+  .fb.good { background: var(--good-bg); color: var(--good-fg); }
+  .fb.hint { background: var(--hint-bg); color: var(--hint-fg); }
+  .btn { font: inherit; font-weight: 700; background: var(--accent); color: var(--accent-fg); border: 0; border-radius: 14px; padding: 14px 20px; min-height: 52px; cursor: pointer; align-self: flex-start; }
+  .stars { font-size: 2.2rem; letter-spacing: 6px; }
+  .small { font-size: 0.85rem; color: var(--muted); margin: 0; }
+  @media (prefers-reduced-motion: no-preference) { .fb { animation: pop .2s ease-out; } @keyframes pop { from { transform: scale(.97); opacity: .4; } to { transform: none; opacity: 1; } } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Habitat Detectives Quiz</h1>
+    <p class="sub">Grade 3 Life Skills: where do animals live? Tap the picture you think is right.</p>
+    <div class="dots" id="dots" aria-hidden="true"></div>
+  </header>
+  <main id="app" class="card" aria-live="polite"></main>
+  <p class="small">Works with no internet. Nothing you tap is saved or sent anywhere, and there is no name to type.</p>
+</div>
+
+<script>
+(function () {
+  var Q = [
+    { tag: "Diagnostic question", scene: "s-desert", note: "Sandy, sunny and dry", big: "🐪",
+      ask: "Where does this animal live?",
+      opts: [["Desert", "🏜️"], ["Ocean", "🌊"], ["Snow", "❄️"]], right: 0,
+      hint: "Look at the sand and the sun in the picture. Which place is hot and dry? Try again!",
+      why: "The camel has wide feet that do not sink in sand and stores fat in its hump, which helps it survive in hot, dry places." },
+    { tag: "Matching question 1 of 3", scene: "s-pond", note: "Water and grass", big: "🐸",
+      ask: "Where does the frog live?",
+      opts: [["Pond", "💧"], ["Ice", "🧊"], ["Tree", "🌳"]], right: 0,
+      hint: "Frogs need wet skin to stay healthy. Where is there lots of water? Try again!",
+      why: "A pond gives the frog water to swim in, insects to eat and plants to hide in." },
+    { tag: "Matching question 2 of 3", scene: "s-snow", note: "Very cold", big: "🐧",
+      ask: "Where does the penguin live?",
+      opts: [["Pond", "💧"], ["Ice", "🧊"], ["Tree", "🌳"]], right: 1,
+      hint: "Penguins have thick feathers to keep warm. Where is it very, very cold? Try again!",
+      why: "Penguins live on ice and snow. Their thick feathers and layer of fat keep them warm, and they swim in the cold sea to catch fish." },
+    { tag: "Matching question 3 of 3", scene: "s-forest", note: "Night time", big: "🦉",
+      ask: "Where does the owl live?",
+      opts: [["Pond", "💧"], ["Ice", "🧊"], ["Tree", "🌳"]], right: 2,
+      hint: "Owls sleep in the day and hunt at night. Where could a bird hide and rest? Try again!",
+      why: "Owls live in trees. A tree hole or branch is a safe place to sleep, and the owl can watch for mice from up high." },
+    { tag: "Thinking question", scene: "s-dry", note: "The pond dried up", big: "🐸",
+      ask: "The pond dried up. What should the frog do, and why?",
+      opts: [["Stay and wait", "⏳"], ["Move to a place with water", "💧"], ["Live in the desert", "🏜️"]], right: 1,
+      hints: { 0: "If the pond stays dry, will the frog get water? Think about what a frog needs. Try again!",
+               2: "Think about what frogs need to live. Does the desert have water? Try again!" },
+      why: "Animals need water, food and shelter. When the pond dried up, the frog had to find a new home that has water." }
+  ];
+  var app = document.getElementById("app"), dotsEl = document.getElementById("dots");
+  var step = 0, firstTry = 0, wrongs = 0, answered = false;
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function dots() {
+    var h = "";
+    for (var i = 0; i < Q.length + 1; i++) h += '<span class="dot ' + (i < step ? "done" : i === step ? "now" : "") + '"></span>';
+    dotsEl.innerHTML = h;
+  }
+  function show() {
+    dots(); wrongs = 0; answered = false;
+    if (step >= Q.length) return selfCheck();
+    var q = Q[step], h = '<div class="tag">' + esc(q.tag) + '</div>' +
+      '<div class="scene ' + q.scene + '" role="img" aria-label="' + esc(q.note) + '"><span class="note">' + esc(q.note) + '</span><span class="big">' + q.big + '</span></div>' +
+      '<h2>' + esc(q.ask) + '</h2><div class="opts" id="opts">';
+    q.opts.forEach(function (o, i) {
+      h += '<button class="opt" data-i="' + i + '"><span class="ic">' + o[1] + '</span><span class="lb">' + esc(o[0]) + '</span></button>';
+    });
+    h += '</div><div id="fb"></div>';
+    app.innerHTML = h;
+    document.getElementById("opts").addEventListener("click", pick);
+  }
+  function pick(e) {
+    var b = e.target.closest(".opt"); if (!b || b.disabled || answered) return;
+    var i = +b.getAttribute("data-i"), q = Q[step], fb = document.getElementById("fb");
+    if (i === q.right) {
+      answered = true; if (wrongs === 0) firstTry++;
+      b.classList.add("right"); lock();
+      fb.innerHTML = '<div class="fb good"><strong>Well done!</strong>' + esc(q.why) + '</div>' + nextBtn();
+    } else {
+      wrongs++; b.disabled = true;
+      if (wrongs >= 2) {
+        answered = true; lock();
+        var all = document.querySelectorAll(".opt"); all[q.right].classList.add("right");
+        fb.innerHTML = '<div class="fb good"><strong>Here is the answer.</strong>' + esc(q.why) + '</div>' + nextBtn();
+      } else {
+        var t = q.hints ? q.hints[i] : q.hint;
+        fb.innerHTML = '<div class="fb hint"><strong>Not quite.</strong>' + esc(t) + '</div>';
+      }
+    }
+    var nb = document.getElementById("next"); if (nb) { nb.addEventListener("click", function () { step++; show(); window.scrollTo(0, 0); }); nb.focus(); }
+  }
+  function lock() { document.querySelectorAll(".opt").forEach(function (x) { if (!x.classList.contains("right")) x.disabled = true; }); }
+  function nextBtn() { return '<button class="btn" id="next">' + (step === Q.length - 1 ? "Finish" : "Next question") + '</button>'; }
+
+  function selfCheck() {
+    dots();
+    var h = '<div class="tag">How do you feel?</div><h2>How sure do you feel about where animals live?</h2><div class="opts" id="sc">' +
+      '<button class="opt" data-k="3"><span class="ic">😊</span><span class="lb">Very sure</span></button>' +
+      '<button class="opt" data-k="2"><span class="ic">😐</span><span class="lb">A bit sure</span></button>' +
+      '<button class="opt" data-k="1"><span class="ic">🤔</span><span class="lb">I need help</span></button></div>';
+    app.innerHTML = h;
+    document.getElementById("sc").addEventListener("click", function (e) {
+      var b = e.target.closest(".opt"); if (!b) return; done(+b.getAttribute("data-k"));
+    });
+  }
+  function done(k) {
+    var s = ""; for (var i = 0; i < Q.length; i++) s += i < firstTry ? "⭐" : "☆";
+    var msg = k === 1 ? "That is okay. Ask your teacher to explore the Habitat Detectives clues with you again." :
+              k === 2 ? "Good work! Look at the clues once more and you will be a habitat expert." :
+              "Great detective work! Now tell a partner where your favourite animal lives and why.";
+    app.innerHTML = '<div class="tag">All done</div><h2>You finished the quiz!</h2><div class="stars" aria-label="' + firstTry + ' out of ' + Q.length + ' right on the first try">' + s + '</div>' +
+      '<p>' + firstTry + ' out of ' + Q.length + ' right on the first try.</p><div class="fb good">' + esc(msg) + '</div>' +
+      '<button class="btn" id="again">Play again</button>';
+    document.getElementById("again").addEventListener("click", function () { step = 0; firstTry = 0; show(); });
+  }
+  show();
+})();
+</script>
+
+</html>
